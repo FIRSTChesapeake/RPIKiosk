@@ -160,9 +160,9 @@ fi
 
 echo "DEBUG: Checking if FTCEVENTSERVER_IP is set." | adddate >> /home/pi/RPIKiosk.log
 
-if [ -n "${FTCEVENTSERVER_IP}" ]; then
-    unset FTCEVENTSERVER_IP
-fi
+# if [ -n "${FTCEVENTSERVER_IP}" ]; then
+#      unset FTCEVENTSERVER_IP
+# fi
 
 if [ -z "$FTCEVENTSERVER_IP" ] ; then
     echo "DEBUG: FTCEVENTSERVER_IP is not set. Trying to find the server automatically using nmap." | adddate >> /home/pi/RPIKiosk.log
@@ -175,7 +175,7 @@ if [ -z "$FTCEVENTSERVER_IP" ] ; then
 
     # Split IP and netmask
     IP=$(echo $IP_NETMASK | cut -d' ' -f1)
-    NETMASK=$(echo $IP_NETMASK | cut -d' ' -f2)
+    CIDR=$(echo $IP_NETMASK | cut -d' ' -f2)
 
     # Combine IP and CIDR
     #echo "${IP}/${CIDR}"
@@ -190,7 +190,7 @@ if [ -z "$FTCEVENTSERVER_IP" ] ; then
         echo "DEBUG: Checking IP: ${ip}" | adddate >> /home/pi/RPIKiosk.log
         
         #Iterate through all systems with port 80 open to try and find the FTCEVENTSERVER_IP
-        status_code=$(curl --silent --output /dev/null --write-out "%{http_code}" "http://${ip}/resources/")
+        status_code=$(curl --silent --output /dev/null --write-out "%{http_code}" "http://${ip}/whoami/")
         if [ "$status_code" -eq 200 ]; then
             #We found an FTC Event Server. So use it's IP going forward
             echo "DEBUG: Automatically found FTC Event Server at ${ip}!" | adddate >> /home/pi/RPIKiosk.log
@@ -392,7 +392,7 @@ if [ -z "$KIOSKURL" ] ; then
         fi
 
         #Get the number of fields for this event
-        numFTCEVENTSERVERFIELDS=$(curl -s -L -X GET http://${FTCEVENTSERVER_IP}/api/v1/events/${FTCEVENTSERVER_EVENTCODE}/matches/ | jq '([ .[][].field ] | max)')
+        numFTCEVENTSERVERFIELDS=$(curl -s -L -X GET http://${FTCEVENTSERVER_IP}/api/v1/events/${FTCEVENTSERVER_EVENTCODE}/ | jq '(.fieldCount)')
 
         # If the field we have selected is higher than the number of fields we have error out!
         if [ $FIELDNUMBER -gt $numFTCEVENTSERVERFIELDS ] ; then
